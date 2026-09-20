@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Ambientes virtuais
+.venv/
+venv/
+
+# Segredos e configuracoes locais
+.env
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Modelos, dados e artefatos gerados
+models/*
+!models/.gitkeep
+data/*
+!data/.gitkeep
+logs/
+artifacts/
+mlruns/
+
+# Sistema e editores
+.DS_Store
+.idea/
+.vscode/
+
