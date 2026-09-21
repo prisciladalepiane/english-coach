@@ -1,0 +1,13 @@
+model:
+  repository: "Qwen/Qwen3-4B-GGUF"
+  quantization: "Q4_K_M"
+  context_size: 4096
+
+generation:
+  temperature: 0.7
+  top_p: 0.8
+  max_tokens: 512
+
+application:
+  name: "English Conversation Coach"
+  log_level: "INFO"
