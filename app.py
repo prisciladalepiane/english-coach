@@ -1,9 +1,15 @@
+from pathlib import Path
+
 import streamlit as st
 
+from english_coach.config import ConfigError, Settings, load_settings
+
+
+SETTINGS_PATH = Path(__file__).resolve().parent / "config" / "settings.yaml"
 
 WELCOME_MESSAGE = (
     "Hi! I'm your English conversation partner. "
-    "What do you what to talk about?"
+    "What would you like to talk about?"
 )
 
 
@@ -24,17 +30,31 @@ def render_history() -> None:
 
 def create_mock_response() -> str:
     """Resposta temporária enquanto o modelo não foi conectado."""
-    return (
-        "**Chat:** Ok!, Let's talk about that!"
-    )
+    return "**Chat:** Okay, let's talk about that!"
+
+
+def render_sidebar(settings: Settings) -> None:
+    """Mostra a configuracao de inferencia selecionada."""
+    with st.sidebar:
+        st.subheader("Runtime configuration")
+        st.write(f"Model: `{settings.model.repository}`")
+        st.write(f"Quantization: `{settings.model.quantization}`")
+        st.write(f"Context: `{settings.model.context_size}` tokens")
+
 
 def main() -> None:
     """Renderiza a interface de conversa."""
-    
-    st.set_page_config(page_title="English Conversation Coach", page_icon="💬")
-    
-    st.title("English Conversation Coach")
+
+    try:
+        settings = load_settings(SETTINGS_PATH)
+    except ConfigError as error:
+        st.error(str(error))
+        st.stop()
+
+    st.set_page_config(page_title=settings.application.name, page_icon="💬")
+    st.title(settings.application.name)
     st.caption("English practice · Local model coming in the next steps")
+    render_sidebar(settings)
     initialize_chat()
     render_history()
 
@@ -49,7 +69,6 @@ def main() -> None:
         )
         with st.chat_message("assistant"):
             st.markdown(response)
-
 
 
 if __name__ == "__main__":
