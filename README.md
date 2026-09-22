@@ -14,20 +14,33 @@ O agente conversara sobre situacoes cotidianas.
 importante, apresentara uma explicacao breve em portugues e fara uma pergunta
 natural de continuacao.
 
-## Para Testar
+## Para Testar localmente
 
-```cmd
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
+```
 
+```bash
 python -m pip install "streamlit>=1.48,<2"
+python -m pip install "pytest>=8,<10"
+```
+Rodar o app:
+
+```bash
 python -m streamlit run app.py
+```
+
+Testes:
+
+```bash
+python -m pytest tests/test_app.py -v
 ```
 
 ## Estado atual
 
-Passo 2: interface de chat com historico de sessao e resposta simulada. O
-modelo ainda nao e carregado.
+Interface de chat com historico, configuracao tipada e download
+controlado do GGUF. O modelo ainda nao e carregado na memoria.
 
 ## Estrutura
 
