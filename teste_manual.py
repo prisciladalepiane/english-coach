@@ -1,24 +1,22 @@
 from pathlib import Path
 
-from llama_cpp import Llama
+from english_coach.config import load_settings
+from english_coach.model import generate_response, load_model
 
 
-MODEL_PATH = Path("models/Qwen3-4B-Q4_K_M.gguf")
-PROMPT_PATH = Path("prompts/system_prompt.txt")
+PROJECT_ROOT = Path(__file__).resolve().parent
+MODELS_DIR = PROJECT_ROOT / "models"
+PROMPT_PATH = PROJECT_ROOT / "prompts" / "system_prompt.txt"
+SETTINGS_PATH = PROJECT_ROOT / "config" / "settings.yaml"
+
 
 def main() -> None:
     """Inicia uma conversa interativa com o modelo no terminal."""
-    if not MODEL_PATH.is_file():
-        raise FileNotFoundError(f"Modelo nao encontrado: {MODEL_PATH}")
-
+    settings = load_settings(SETTINGS_PATH)
     system_prompt = PROMPT_PATH.read_text(encoding="utf-8")
 
     print("Carregando o modelo...")
-    llm = Llama(
-        model_path=str(MODEL_PATH),
-        n_ctx=2048,
-        verbose=False,
-    )
+    model = load_model(settings.model, MODELS_DIR)
 
     messages = [
         {
@@ -45,16 +43,11 @@ def main() -> None:
 
         messages.append({"role": "user", "content": user_message})
 
-        response = llm.create_chat_completion(
-            messages=messages,
-            temperature=0.7,
-            top_p=0.8,
-            max_tokens=120,
+        assistant_message = generate_response(
+            model,
+            messages,
+            settings.generation,
         )
-
-        assistant_message = response["choices"][0]["message"]["content"]
-        if not assistant_message:
-            assistant_message = "I could not generate a response. Please try again."
 
         print(f"\nCoach: {assistant_message}\n")
         messages.append({"role": "assistant", "content": assistant_message})
