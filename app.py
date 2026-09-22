@@ -3,9 +3,16 @@ from pathlib import Path
 import streamlit as st
 
 from english_coach.config import ConfigError, Settings, load_settings
+from english_coach.model import (
+    ModelFileError,
+    download_model_file,
+    get_local_model_path,
+    is_model_available,
+)
 
 
 SETTINGS_PATH = Path(__file__).resolve().parent / "config" / "settings.yaml"
+MODELS_DIR = Path(__file__).resolve().parent / "models"
 
 WELCOME_MESSAGE = (
     "Hi! I'm your English conversation partner. "
@@ -38,8 +45,22 @@ def render_sidebar(settings: Settings) -> None:
     with st.sidebar:
         st.subheader("Runtime configuration")
         st.write(f"Model: `{settings.model.repository}`")
+        st.write(f"File: `{settings.model.filename}`")
         st.write(f"Quantization: `{settings.model.quantization}`")
         st.write(f"Context: `{settings.model.context_size}` tokens")
+
+        if is_model_available(settings.model, MODELS_DIR):
+            st.success("Model file available locally")
+            st.caption(str(get_local_model_path(settings.model, MODELS_DIR)))
+        else:
+            st.warning("Model file not downloaded")
+            if st.button("Download model (about 2.5 GB)"):
+                try:
+                    with st.status("Downloading model...", expanded=True):
+                        download_model_file(settings.model, MODELS_DIR)
+                    st.rerun()
+                except ModelFileError as error:
+                    st.error(str(error))
 
 
 def main() -> None:
