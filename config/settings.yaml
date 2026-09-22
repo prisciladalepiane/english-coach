@@ -1,6 +1,8 @@
 model:
   repository: "Qwen/Qwen3-4B-GGUF"
+  filename: "Qwen3-4B-Q4_K_M.gguf"
   quantization: "Q4_K_M"
+  revision: "bc64014"
   context_size: 4096
 
 generation:

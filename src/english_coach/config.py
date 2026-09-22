@@ -10,7 +10,9 @@ import yaml
 @dataclass(frozen=True)
 class ModelSettings:
     repository: str
+    filename: str
     quantization: str
+    revision: str
     context_size: int
 
 
@@ -66,7 +68,9 @@ def load_settings(path: str | Path) -> Settings:
         settings = Settings(
             model=ModelSettings(
                 repository=str(model["repository"]),
+                filename=str(model["filename"]),
                 quantization=str(model["quantization"]),
+                revision=str(model["revision"]),
                 context_size=int(model["context_size"]),
             ),
             generation=GenerationSettings(
