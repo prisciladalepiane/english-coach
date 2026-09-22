@@ -4,11 +4,17 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-from english_coach.config import ModelSettings
+from llama_cpp import Llama
+
+from english_coach.config import GenerationSettings, ModelSettings
 
 
 class ModelFileError(RuntimeError):
     """Indica uma falha ao localizar ou baixar o arquivo do modelo."""
+
+
+class ModelInferenceError(RuntimeError):
+    """Indica uma falha ao carregar o modelo ou gerar uma resposta."""
 
 
 DownloadFunction = Callable[..., str]
@@ -16,7 +22,8 @@ DownloadFunction = Callable[..., str]
 
 def get_local_model_path(
     settings: ModelSettings,
-    models_dir: str | Path) -> Path:
+    models_dir: str | Path,
+) -> Path:
     """Retorna o caminho esperado para o GGUF local."""
     return Path(models_dir) / settings.filename
 
@@ -72,3 +79,47 @@ def download_model_file(
         )
 
     return downloaded_path
+
+
+def load_model(settings: ModelSettings, models_dir: str | Path) -> Llama:
+    """Carrega o modelo GGUF para a memoria."""
+    model_path = get_local_model_path(settings, models_dir)
+
+    if not model_path.is_file():
+        raise ModelFileError(f"Modelo nao encontrado: {model_path}")
+
+    try:
+        return Llama(
+            model_path=str(model_path),
+            n_ctx=settings.context_size,
+            verbose=False,
+        )
+    except Exception as error:
+        raise ModelInferenceError(
+            f"Nao foi possivel carregar o modelo: {error}"
+        ) from error
+
+
+def generate_response(
+    model: Llama,
+    messages: list[dict[str, str]],
+    settings: GenerationSettings,
+) -> str:
+    """Envia as mensagens ao modelo e retorna somente o texto da resposta."""
+    try:
+        result = model.create_chat_completion(
+            messages=messages,
+            temperature=settings.temperature,
+            top_p=settings.top_p,
+            max_tokens=settings.max_tokens,
+        )
+        content = result["choices"][0]["message"]["content"]
+    except Exception as error:
+        raise ModelInferenceError(
+            f"Nao foi possivel gerar uma resposta: {error}"
+        ) from error
+
+    if not isinstance(content, str) or not content.strip():
+        raise ModelInferenceError("O modelo retornou uma resposta vazia")
+
+    return content.strip()
