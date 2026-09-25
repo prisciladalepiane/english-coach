@@ -19,8 +19,10 @@ Requisito: Python 3.11, 3.12 ou 3.13. Na raiz do projeto:
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements.txt
-python -m pip install --no-deps -e .
+python -m pip install -e ".[dev]"
+```
+
+```bash 
 python -m streamlit run app.py
 ```
 
@@ -60,8 +62,7 @@ english-conversation-coach/
 ├── tests/                          Testes automatizados por camada
 ├── models/                         Pesos locais, ignorados pelo Git
 ├── data/                           Dados futuros, ignorados pelo Git
-├── requirements.txt                Dependências para execução e testes
-├── pyproject.toml                  Metadados e configuração do pacote
+├── pyproject.toml                  Metadados, dependências e configuração das ferramentas
 └── README.md                       Uso e arquitetura
 ```
 
@@ -96,7 +97,9 @@ O fluxo `app.py → chat.py → model.py → Qwen` já está implementado. Cada 
 
 O modelo configurado hoje é `Qwen/Qwen3-4B-GGUF`, arquivo `Qwen3-4B-Q4_K_M.gguf`, quantização `Q4_K_M`. Os pesos ficam em `models/` e não entram no Git. `data/`, `logs/` e `artifacts/` ficam reservados para dados, observabilidade e avaliações futuras.
 
-### Configuração (src/config.py)
+## Diagrama de Classes
+
+### Configuração
 
 **Módulo:** config.py\
 **Classes:** Settings, ApplicationSettings, GeneretionSettings e ModelSettings.\
@@ -158,6 +161,7 @@ classDiagram
     Config ..> Settings : cria (dependência)
     Config ..> ConfigError : lança (dependência)
 ```
+
 
 ## Testes e estado atual
 
