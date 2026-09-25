@@ -4,6 +4,7 @@ import streamlit as st
 
 from english_coach.chat import reply
 from english_coach.config import ConfigError, Settings, load_settings
+from english_coach.logging_config import configure_logging
 from english_coach.model import (
     ModelFileError,
     ModelInferenceError,
@@ -67,7 +68,8 @@ def main() -> None:
 
     try:
         settings = load_settings(SETTINGS_PATH)
-    except ConfigError as error:
+        logger = configure_logging(settings.application.log_level)
+    except (ConfigError, ValueError) as error:
         st.error(str(error))
         st.stop()
 
@@ -91,6 +93,7 @@ def main() -> None:
                 if "model" not in st.session_state:
                     with st.spinner("Loading the model..."):
                         st.session_state.model = load_model(settings.model, MODELS_DIR)
+                    logger.info("Modelo carregado: %s", settings.model.filename)
 
                 with st.spinner("Thinking..."):
                     response = reply(
@@ -101,6 +104,7 @@ def main() -> None:
                         PROMPT_PATH,
                     )
             except (ModelFileError, ModelInferenceError, OSError) as error:
+                logger.error("Falha no modelo: %s", type(error).__name__)
                 st.error(str(error))
             else:
                 st.markdown(response)
