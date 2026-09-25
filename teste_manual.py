@@ -1,7 +1,8 @@
 from pathlib import Path
 
 from english_coach.config import load_settings
-
+from english_coach.model import generate_response, get_local_model_path
+from llama_cpp import Llama
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 MODELS_DIR = PROJECT_ROOT / "models"
@@ -17,10 +18,30 @@ def main() -> None:
 
     settings = load_settings(SETTINGS_PATH)
     print(settings)
-
     print(settings.application)
     print(settings.generation)
     print(settings.model)
+
+    model_path = get_local_model_path(settings.model, MODELS_DIR)
+    model = Llama(
+        model_path=str(model_path),
+        n_ctx=settings.model.context_size,
+        verbose=False,
+    )
+
+    system_prompt = PROMPT_PATH.read_text(encoding="utf-8").strip()
+    user_message = "Can you help me with my English homework?"
+    history = []
+
+    messages = [
+        {"role": "system", "content": f"{system_prompt}\n/no_think"},
+        *history,
+        {"role": "user", "content": user_message},
+    ]
+
+    resp = generate_response(model, messages, settings.generation)
+
+    print("Response:", resp)
 
 
 if __name__ == "__main__":
