@@ -1,8 +1,10 @@
 from pathlib import Path
+from llama_cpp import Llama
 
 from english_coach.config import load_settings
 from english_coach.model import generate_response, get_local_model_path
-from llama_cpp import Llama
+from english_coach.chat import reply
+
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 MODELS_DIR = PROJECT_ROOT / "models"
@@ -23,6 +25,8 @@ def main() -> None:
     print(settings.model)
 
     model_path = get_local_model_path(settings.model, MODELS_DIR)
+    print(f"Model path: {model_path}")
+
     model = Llama(
         model_path=str(model_path),
         n_ctx=settings.model.context_size,
@@ -43,6 +47,8 @@ def main() -> None:
 
     print("Response:", resp)
 
+    reply_resp = reply(model, history, user_message, settings.generation, PROMPT_PATH)
+    print("Reply Response:", reply_resp)
 
 if __name__ == "__main__":
     main()
