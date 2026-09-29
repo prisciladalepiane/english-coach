@@ -68,7 +68,9 @@ english-conversation-coach/
 
 O `.env.example` mostra variáveis locais possíveis, mas o aplicativo ainda não lê um `.env`. Arquivos `.env` reais são ignorados pelo Git.
 
-## Arquitetura e fluxo da conversa
+## Arquitetura 
+
+A versão atual roda totalmente local.
 
 ```text
 Navegador
@@ -93,18 +95,13 @@ O fluxo `app.py → chat.py → model.py → Qwen` já está implementado. Cada 
 - **Conexão com o LLM — [`model.py`](src/english_coach/model.py):** identifica o arquivo esperado, verifica se existe, baixa a revisão configurada do Hugging Face quando solicitado, carrega o GGUF com `Llama` e chama `create_chat_completion` com os parâmetros de geração. Erros de arquivo e inferência têm exceções próprias.
 - **Configuração — [`config.py`](src/english_coach/config.py) e [`settings.yaml`](config/settings.yaml):** o YAML define `model`, `generation` e `application`. O módulo Python converte esses valores em dataclasses imutáveis e valida os limites antes da inferência. A revisão do modelo, o nome do arquivo e a quantização ficam explícitos para reprodução.
 - **Prompt — [`system_prompt.txt`](prompts/system_prompt.txt):** define o comportamento do parceiro de inglês separadamente da interface e da biblioteca de inferência. Isso facilita revisar e comparar versões das instruções.
-- **Observabilidade — [`logging_config.py`](src/english_coach/logging_config.py):** ainda é um placeholder. O plano é registrar erros e tempos de carga/geração em `logs/`, sem salvar o conteúdo das conversas por padrão, pois ele pode conter dados pessoais.
+- **Observabilidade — [`logging_config.py`](src/english_coach/logging_config.py):** configura logs no terminal conforme `application.log_level`. O app registra o carregamento do modelo e falhas, sem registrar as mensagens da conversa. Medidas de tempo e arquivos em `logs/` ficam para etapas futuras.
 
 O modelo configurado hoje é `Qwen/Qwen3-4B-GGUF`, arquivo `Qwen3-4B-Q4_K_M.gguf`, quantização `Q4_K_M`. Os pesos ficam em `models/` e não entram no Git. `data/`, `logs/` e `artifacts/` ficam reservados para dados, observabilidade e avaliações futuras.
 
-## Diagrama de Classes
+### Diagrama de Classes
 
-### Configuração
-
-**Módulo:** config.py\
-**Classes:** Settings, ApplicationSettings, GeneretionSettings e ModelSettings.\
-**Funções:** load_settings()\
-**Funções internas:** _get_section()
+#### Configuração
 
 
 ```mermaid
@@ -172,6 +169,7 @@ Os testes em `tests/` seguem as responsabilidades do projeto:
 | `test_app.py` | Inicialização da interface, entrada e histórico |
 | `test_chat.py` | Montagem das mensagens e tratamento da resposta |
 | `test_config.py` | Leitura do YAML e rejeição de parâmetros inválidos |
+| `test_logging_config.py` | Nível, saída e ausência de handlers duplicados nos logs |
 | `test_model.py` | Download e inferência com dependências simuladas |
 | `test_package.py` | Importação e versão do pacote |
 
@@ -184,7 +182,8 @@ A suíte cotidiana não precisa carregar o GGUF. Para verificar a inferência de
 | Prompt separado e conectado à conversa | Implementado |
 | Download, carga e inferência do GGUF | Implementados |
 | Testes automatizados sem modelo real | Implementados |
-| Logs, métricas e avaliações pedagógicas | Planejados |
+| Logs básicos no terminal | Implementados |
+| Métricas e avaliações pedagógicas | Planejadas |
 
 ## Princípios de MLOps/LLMOps usados até aqui
 
@@ -194,4 +193,4 @@ A suíte cotidiana não precisa carregar o GGUF. Para verificar a inferência de
 - **Testes rápidos:** simulações verificam comportamento sem baixar ou carregar um modelo de vários gigabytes.
 - **Prompt separado:** regras pedagógicas podem ser alteradas e avaliadas sem mudar a camada de inferência.
 
-Próximos passos: implementar logs de erros e tempos; criar avaliações para qualidade da correção, brevidade e continuidade da conversa.
+Próximos passos: medir tempos de carga e geração; criar avaliações para qualidade da correção, brevidade e continuidade da conversa.
